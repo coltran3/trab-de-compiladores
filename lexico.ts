@@ -4,12 +4,8 @@ export enum TokenType {
   IGUAL = "IGUAL",
   VALOR = "VALOR",
   EXCLAMACAO = "EXCLAMACAO",
-  ECOMERCIAL = "ECOMERCIAL",
-  ADD = "ADD",
-  MUL = "MUL",
-  SUB = "SUB",
-  BARRA = "BARRA",
-  BARRAVERTICAL = "BARRAVERTICAL",
+  OPB = "OPB",
+  OPA = "OPA",
   VIRGULA = "VIRGULA",
   PONTOVIRGULA = "PONTOVIRGULA",
   LETRA = "LETRA",
@@ -57,28 +53,13 @@ export class Lexer {
       case "\t":
         this.nextChar();
         return this.nextToken();
-
-      case "+":
-        this.nextChar();
-        return new Token(TokenType.ADD);
-      case "-":
-        this.nextChar();
-        return new Token(TokenType.SUB);
       case "*":
-        this.nextChar();
-        return new Token(TokenType.MUL);
       case "/":
         this.nextChar();
-        return new Token(TokenType.BARRA);
+        return new Token(TokenType.OPA);
       case "=":
         this.nextChar();
         return new Token(TokenType.IGUAL);
-      case "&":
-        this.nextChar();
-        return new Token(TokenType.ECOMERCIAL);
-      case "|":
-        this.nextChar();
-        return new Token(TokenType.BARRAVERTICAL);
       case ",":
         this.nextChar();
         return new Token(TokenType.VIRGULA);
@@ -97,6 +78,7 @@ export class Lexer {
       default: {
         const digits = "0123456789";
 
+        //@ts-ignore
         if (digits.includes(this.currentChar)) {
           let num = this.currentChar;
           this.nextChar();
@@ -135,15 +117,58 @@ export class Lexer {
             return new Token(TokenType.ENQUANTO);
           }
 
-          if (word === "FACA") {
-            return new Token(TokenType.FACA);
-          }
-
           if (word === "ACABOU") {
             return new Token(TokenType.ACABOU);
           }
 
+          if (word === "FACA") {
+            return new Token(TokenType.FACA);
+          }
+
           return new Token(TokenType.IDENTIFICADOR, word);
+        }
+
+        if ("&" === this.currentChar || "|" === this.currentChar) {
+          let opb = this.currentChar;
+          this.nextChar();
+          if (opb === this.currentChar) {
+            opb += this.currentChar;
+
+            return new Token(TokenType.OPB, opb);
+          }
+        }
+
+        if ("+" === this.currentChar || "-" === this.currentChar) {
+          let vessel = this.currentChar;
+          this.nextChar();
+
+          //@ts-ignore
+          if (digits.includes(this.currentChar)) {
+            vessel += this.currentChar;
+            this.nextChar();
+
+            //@ts-ignore
+            while (digits.includes(this.currentChar)) {
+              vessel += this.currentChar;
+              this.nextChar();
+            }
+
+            //@ts-ignore
+            if ("," === this.currentChar) {
+              vessel += this.currentChar;
+              this.nextChar();
+            }
+
+            //@ts-ignore
+            while (digits.includes(this.currentChar)) {
+              vessel += this.currentChar;
+              this.nextChar();
+            }
+
+            return new Token(TokenType.VALOR, vessel);
+          }
+
+          return new Token(TokenType.OPA, vessel);
         }
       }
     }
