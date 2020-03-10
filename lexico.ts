@@ -13,10 +13,15 @@ export enum TokenType {
   AP = "AP",
   FP = "FP",
   SE = "SE",
-  NAO = "NAO",
+  SENAO = "SENAO",
   FACA = "FACA",
   ENQUANTO = "ENQUANTO",
-  ACABOU = "ACABOU"
+  ACABOU = "ACABOU",
+  // NÃO TERMINAIS
+  $ = "$",
+  PROGRAMA = "PROGRAMA",
+  COMANDO = "COMANDO",
+  EXPRESSAO = "EXPRESSAO"
 }
 
 export class Token {
@@ -96,7 +101,7 @@ export class Lexer {
           let word = this.currentChar;
           this.nextChar();
 
-          while (letter.test(this.currentChar)) {
+          while (this.currentChar && letter.test(this.currentChar)) {
             word += this.currentChar;
             this.nextChar();
           }
@@ -109,8 +114,8 @@ export class Lexer {
             return new Token(TokenType.SE);
           }
 
-          if (word === "NAO") {
-            return new Token(TokenType.NAO);
+          if (word === "SENAO") {
+            return new Token(TokenType.SENAO);
           }
 
           if (word === "ENQUANTO") {
