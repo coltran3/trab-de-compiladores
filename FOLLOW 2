@@ -1,0 +1,26 @@
+FOLLOW(S) = { $}
+FOLLOW(PROGRAMA) = { $, ACABOU, SENÃO}
+FOLLOW(PROGRAMA') = { $, ACABOU, SENÃO}
+FOLLOW(COMANDO) = { $, a...z, A...Z, INTEIRO, QUEBRADO, LOGICO, SE, ENQUANTO, ACABOU, SENÃO}
+FOLLOW(STMT) = { ;}
+FOLLOW(I) = { ;}
+FOLLOW(T) = { ;}
+FOLLOW(X) = { $, a...z, A...Z, INTEIRO, QUEBRADO, LOGICO, SE, ENQUANTO, ACABOU, SENÃO}  
+FOLLOW(X') = { $, a...z, A...Z, INTEIRO, QUEBRADO, LOGICO, SE, ENQUANTO, ACABOU, SENÃO}
+FOLLOW(E) = { $, a...z, A...Z, INTEIRO, QUEBRADO, LOGICO, SE, ENQUANTO, ACABOU, SENÃO}
+FOLLOW(IDENTIFICADOR) = { =, ; +, -, /, *, &, |, )}
+FOLLOW(EXPRESSÃO) = { ;, ), +, -, /, *, &, |} 
+FOLLOW(ARITMÉTICA_LÓGICA) = { ;, ), +, -, /, *, &, |}
+FOLLOW(EXPRESSÃO_ARITIMÉTICA') = { &, |, ;, ), +, -, /, *, &, |}
+FOLLOW(EXPRESSÃO_LÓGICA') = { ;, ), +, -, /, *, &, |}
+FOLLOW(TIPO) = { a...z, A...Z}
+FOLLOW(VALOR) = { +, -, /, *, &, |, ;, )}
+FOLLOW(SINAL) = { 0...9}
+FOLLOW(N) = { ,, +, -, /, *, &, |, ;, )}
+FOLLOW(CASA_DECIMAL) = { +, -, /, *, &, |, ;, )}
+FOLLOW(LETRA_OU_NUMERO) = { =, ; +, -, /, *, &, |, )}
+FOLLOW(E_OU) = { a...z, A...Z, +, -, 0...9, (, !}
+FOLLOW(NEGACÃO) = { a...z, A...Z, +, -, 0...9, (, !}
+FOLLOW(OPA) = { a...z, A...Z, +, -, 0...9, (, !}
+FOLLOW(LETRA) = { a...z, A...Z, 0...9, =, ; +, -, /, *, &, |, )}
+FOLLOW(NUMERO) = { 0...9, ,, +, -, /, *, &, |, ;, ), a...z, A...Z, =}

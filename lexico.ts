@@ -1,8 +1,5 @@
 export enum TokenType {
-  TIPO = "TIPO",
-  IDENTIFICADOR = "IDENTIFICADOR",
   IGUAL = "IGUAL",
-  VALOR = "VALOR",
   EXCLAMACAO = "EXCLAMACAO",
   OPB = "OPB",
   OPA = "OPA",
@@ -19,9 +16,29 @@ export enum TokenType {
   ACABOU = "ACABOU",
   // NÃO TERMINAIS
   $ = "$",
+  S = "PROGRAMA",
   PROGRAMA = "PROGRAMA",
+  PROGRAMAX = "PROGRAMAX",
   COMANDO = "COMANDO",
-  EXPRESSAO = "EXPRESSAO"
+  STMT = "STMT",
+  I = "I",
+  T = "T",
+  X = "X",
+  XX = "XX",
+  E = "E",
+  IDENTIFICADOR = "IDENTIFICADOR",
+  EXPRESSAO = "EXPRESSAO",
+  ARITIMETICA_LOGICA = "ARITIMETICA_LOGICA",
+  EXPRESSAO_ARITIMETICA = "EXPRESSAO_ARITIMETICA",
+  EXPRESSAO_LOGICA = "EXPRESSAO_LOGICA",
+  TIPO = "TIPO",
+  VALOR = "VALOR",
+  SINAL = "SINAL",
+  N = "N",
+  CASA_DECIMAL = "CASA_DECIMAL",
+  LETRA_OU_NUMERO = "LETRA_OU_NUMERO",
+  E_OU = "E_OU",
+  NEGAÇÃO = "NEGAÇÃO"
 }
 
 export class Token {
@@ -40,6 +57,7 @@ export class Lexer {
   pos = 0;
   constructor(private source: string) {}
 
+  //@ts-ignore
   get currentChar() {
     return this.source[this.pos];
   }
@@ -59,9 +77,11 @@ export class Lexer {
         this.nextChar();
         return this.nextToken();
       case "*":
-      case "/":
+      case "/": {
+        let opa = this.currentChar;
         this.nextChar();
-        return new Token(TokenType.OPA);
+        return new Token(TokenType.OPA, opa);
+      }
       case "=":
         this.nextChar();
         return new Token(TokenType.IGUAL);
@@ -88,6 +108,7 @@ export class Lexer {
           let num = this.currentChar;
           this.nextChar();
 
+          //@ts-ignore
           while (digits.includes(this.currentChar)) {
             num += this.currentChar;
             this.nextChar();
@@ -140,6 +161,8 @@ export class Lexer {
             opb += this.currentChar;
 
             return new Token(TokenType.OPB, opb);
+          } else {
+            throw Error("Character inesperado");
           }
         }
 

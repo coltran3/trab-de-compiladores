@@ -7,40 +7,233 @@ export class Parser {
       [key in keyof typeof TokenType]?: number;
     };
   } = {
-    TIPO: { ACABOU: 1 }
+    S: { IDENTIFICADOR: 1, SE: 1, ENQUANTO: 1, TIPO: 1 },
+    PROGRAMA: { IDENTIFICADOR: 2, SE: 2, ENQUANTO: 2, TIPO: 2 },
+    PROGRAMAX: {
+      IDENTIFICADOR: 3,
+      SE: 3,
+      SENAO: 4,
+      ACABOU: 4,
+      ENQUANTO: 3,
+      TIPO: 3,
+      $: 4
+    },
+    STMT: { IDENTIFICADOR: 5, TIPO: 6 },
+    I: { IDENTIFICADOR: 7 },
+    T: { TIPO: 38 },
+    X: { SE: 39, ACABOU: 41 },
+    XX: { SENAO: 40 },
+    E: { ENQUANTO: 42 },
+    EXPRESSAO: { IDENTIFICADOR: 8, VALOR: 9, OPA: 9, AP: 10, NEGAÇÃO: 11 },
+    ARITIMETICA_LOGICA: { PONTOVIRGULA: 12, OPA: 12, E_OU: 12, FP: 12 },
+    EXPRESSAO_ARITIMETICA: { PONTOVIRGULA: 13, OPA: 14, E_OU: 13, FP: 13 },
+    EXPRESSAO_LOGICA: { PONTOVIRGULA: 15, OPA: 15, E_OU: 16, FP: 15 },
+    VALOR: { PONTOVIRGULA: 20, OPA: 20, OPB: 20, AP: 20 },
+    SINAL: { VALOR: 21, OPA: 22 },
+    N: { VIRGULA: 24, PONTOVIRGULA: 25, OPA: 25, E_OU: 25, AP: 25 },
+    CASA_DECIMAL: { VIRGULA: 27, PONTOVIRGULA: 26, OPA: 26, E_OU: 26, FP: 26 },
+    LETRA_OU_NUMERO: {
+      IDENTIFICADOR: 29,
+      VALOR: 30,
+      PONTOVIRGULA: 28,
+      OPA: 28,
+      E_OU: 28,
+      FP: 28,
+      IGUAL: 28
+    }
+    // E_OU: {E_OU:31},
+    // OPA: { OPA: 33},
   };
+
+  // 1 = S -> [PROGRAMA]
+  // 2 = PROGRAMA ->[COMANDO][PROGRAMA’]
+  // 3 = PROGRAMA' -> [PROGRAMA]
+  // 4 = PROGRAMA' -> ε
+  // 5 = STMT -> [I]
+  // 6 = STMT -> [T]
+  // 7 = I -> [IDENTIFICADOR] = [EXPRESSÃO];
+  // 8 = EXPRESSÃO -> [IDENTIFICADOR][ARITMÉTICA_LÓGICA]
+  // 9 = EXPRESSÃO -> [VALOR][ARITMÉTICA_LÓGICA]
+  // 10 = EXPRESSÃ0 -> ([EXPRESSÃO])[ARITMÉTICA_LÓGICA]
+  // 11 = EXPRESSÃO -> [NEGAÇÃO] [EXPRESSÃO][ARITMÉTICA_LÓGICA]
+  // 12 = ARITMÉTICA_LÓGICA -> [EXPRESSÃO_ARITIMÉTICA'][EXPRESSÃO_LÓGICA']
+  // 13 = EXPRESSÃO_ARITIMÉTICA' -> ε
+  // 14 = EXPRESSÃO_ARITIMÉTICA' -> [OPA] [EXPRESSÃO][EXPRESSÃO_ARITIMÉTICA']
+  // 15 = EXPRESSÃO_LÓGICA' -> ε
+  // 16 = EXPRESSÃO_LÓGICA' -> [E_OU] [EXPRESSÃO][EXPRESSÃO_LÓGICA']
+  // 17 = TIPO -> INTEIRO
+  // 18 = TIPO -> QUEBRADO
+  // 19 = TIPO -> LOGICO
+  // 20 = VALOR -> [SINAL] [NUMERO] [N] [CASA_DECIMAL]
+  // 21 = SINAL -> ε
+  // 22 = SINAL -> +
+  // 23 = SINAL -> -
+  // 24 = N -> [NUMERO]
+  // 25 = N -> ε
+  // 26 = CASA_DECIMAL -> ε
+  // 27 = CASA_DECIMAL -> ,[NUMERO][N]
+  // 28 = LETRA_OU_NUMERO -> ε
+  // 29 = LETRA_OU_NUMERO -> [LETRA][LETRA_OU_NUMERO]
+  // 30 = LETRA_OU_NUMERO -> [NUMERO][LETRA_OU_NUMERO]
+  // 31 = E_OU -> &&
+  // 32 = E_OU -> ||
+  // 33 = OPA -> +
+  // 34 = OPA -> -
+  // 35 = OPA -> /
+  // 36 = OPA -> *
+  // 38 = T -> [TIPO][IDENTIFICADOR];
+  // 39 = X -> SE [EXPRESSÃO_LÓGICA] FACA [PROGRAMA] [X’]
+  // 40 = X' -> SENÃO [PROGRAMA] ACABOU
+  // 41 = X' -> ACABOU
+  // 42 = E -> ENQUANTO [EXPRESSÃO_LÓGICA] FACA [PROGRAMA] ACABOU
+
   constructor(private lexer: Lexer) {
     this.pilha.push(new Token(TokenType.$), new Token(TokenType.PROGRAMA));
   }
+
+  i = 0;
 
   parse() {
     let token = this.lexer.nextToken();
     if (!token) {
       //acabou
     }
-    while (this.pilha.length) {
+    while (this.pilha.length && this.i < 7) {
       const topo = this.pilha[this.pilha.length - 1];
-      if (token === topo) {
+      this.i++;
+      if (token!.type === topo.type) {
         console.log("Bateu pivt!", token);
+        token = this.lexer.nextToken();
         this.pilha.pop();
       } else {
-        console.log("Regra: ");
+        console.log("Regra: ", topo, token);
         const linha = this.LL[topo.type];
         if (linha) {
           const producao = linha[token!.type];
           this.pilha.pop();
           switch (producao) {
-            case 10: // exemplo
+            case 2: {
+              this.pilha.push(new Token(TokenType.PROGRAMAX));
+              this.pilha.push(new Token(TokenType.COMANDO));
+              break;
+            }
+            case 3: {
+              this.pilha.push(new Token(TokenType.PROGRAMA));
+              break;
+            }
+            case 5: {
+              this.pilha.push(new Token(TokenType.I));
+              break;
+            }
+            case 6: {
+              this.pilha.push(new Token(TokenType.T));
+              break;
+            }
+            case 7: {
+              this.pilha.push(new Token(TokenType.PONTOVIRGULA));
+              this.pilha.push(new Token(TokenType.EXPRESSAO));
+              this.pilha.push(new Token(TokenType.IGUAL));
+              this.pilha.push(new Token(TokenType.IDENTIFICADOR));
+              break;
+            }
+            case 8: {
+              this.pilha.push(new Token(TokenType.ARITIMETICA_LOGICA));
+              this.pilha.push(new Token(TokenType.IDENTIFICADOR));
+              break;
+            }
+            case 9: {
+              this.pilha.push(new Token(TokenType.ARITIMETICA_LOGICA));
+              this.pilha.push(new Token(TokenType.VALOR));
+              break;
+            }
+            case 10: {
+              // exemplo
               this.pilha.push(
+                new Token(TokenType.ARITIMETICA_LOGICA),
+                new Token(TokenType.FP),
                 new Token(TokenType.EXPRESSAO),
-                new Token(TokenType.IGUAL),
-                new Token(TokenType.IDENTIFICADOR)
+                new Token(TokenType.AP)
               );
+              break;
+            }
+            case 11: {
+              this.pilha.push(
+                new Token(TokenType.ARITIMETICA_LOGICA),
+                new Token(TokenType.EXPRESSAO),
+                new Token(TokenType.NEGAÇÃO)
+              );
+              break;
+            }
+            case 12: {
+              this.pilha.push(
+                new Token(TokenType.EXPRESSAO_LOGICA),
+                new Token(TokenType.EXPRESSAO_ARITIMETICA)
+              );
+              break;
+            }
+            case 14: {
+              this.pilha.push(
+                new Token(TokenType.EXPRESSAO_ARITIMETICA),
+                new Token(TokenType.EXPRESSAO),
+                new Token(TokenType.OPA)
+              );
+              break;
+            }
+            case 16: {
+              this.pilha.push(
+                new Token(TokenType.EXPRESSAO_LOGICA),
+                new Token(TokenType.EXPRESSAO),
+                new Token(TokenType.E_OU)
+              );
+              break;
+            }
+            case 38: {
+              this.pilha.push(
+                new Token(TokenType.PONTOVIRGULA),
+                new Token(TokenType.IDENTIFICADOR),
+                new Token(TokenType.TIPO)
+              );
+              break;
+            }
+            case 39: {
+              this.pilha.push(
+                new Token(TokenType.XX),
+                new Token(TokenType.PROGRAMA),
+                new Token(TokenType.FACA),
+                new Token(TokenType.EXPRESSAO_LOGICA),
+                new Token(TokenType.SE)
+              );
+              break;
+            }
+            case 40: {
+              this.pilha.push(
+                new Token(TokenType.ACABOU),
+                new Token(TokenType.PROGRAMA),
+                new Token(TokenType.SENAO)
+              );
+              break;
+            }
+            case 41: {
+              this.pilha.push(new Token(TokenType.ACABOU));
+              break;
+            }
+            case 42: {
+              this.pilha.push(
+                new Token(TokenType.ACABOU),
+                new Token(TokenType.PROGRAMA),
+                new Token(TokenType.FACA),
+                new Token(TokenType.EXPRESSAO_LOGICA),
+                new Token(TokenType.ENQUANTO)
+              );
+              break;
+            }
             default:
               throw Error("Produção invalida.");
           }
         }
       }
     }
+
+    console.log("Fechou");
   }
 }
