@@ -114,7 +114,7 @@ export class Lexer {
             this.nextChar();
           }
 
-          return new Token(TokenType.NUMERO, num);
+          return new Token(TokenType.VALOR, num);
         }
 
         const letter = /[a-zA-Z_]/;

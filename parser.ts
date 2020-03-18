@@ -7,7 +7,6 @@ export class Parser {
       [key in keyof typeof TokenType]?: number;
     };
   } = {
-    S: { IDENTIFICADOR: 1, SE: 1, ENQUANTO: 1, TIPO: 1 },
     PROGRAMA: { IDENTIFICADOR: 2, SE: 2, ENQUANTO: 2, TIPO: 2 },
     PROGRAMAX: {
       IDENTIFICADOR: 3,
@@ -16,7 +15,14 @@ export class Parser {
       ACABOU: 4,
       ENQUANTO: 3,
       TIPO: 3,
+      PONTOVIRGULA: 4,
       $: 4
+    },
+    COMANDO: {
+      IDENTIFICADOR: 43,
+      SE: 44,
+      ENQUANTO: 45,
+      TIPO: 43
     },
     STMT: { IDENTIFICADOR: 5, TIPO: 6 },
     I: { IDENTIFICADOR: 7 },
@@ -25,9 +31,30 @@ export class Parser {
     XX: { SENAO: 40 },
     E: { ENQUANTO: 42 },
     EXPRESSAO: { IDENTIFICADOR: 8, VALOR: 9, OPA: 9, AP: 10, NEGAÇÃO: 11 },
-    ARITIMETICA_LOGICA: { PONTOVIRGULA: 12, OPA: 12, E_OU: 12, FP: 12 },
-    EXPRESSAO_ARITIMETICA: { PONTOVIRGULA: 13, OPA: 14, E_OU: 13, FP: 13 },
-    EXPRESSAO_LOGICA: { PONTOVIRGULA: 15, OPA: 15, E_OU: 16, FP: 15 },
+    ARITIMETICA_LOGICA: {
+      PONTOVIRGULA: 12,
+      OPA: 12,
+      E_OU: 12,
+      FP: 12,
+      FACA: 12,
+      ACABOU: 12
+    },
+    EXPRESSAO_ARITIMETICA: {
+      PONTOVIRGULA: 13,
+      OPA: 14,
+      E_OU: 13,
+      FP: 13,
+      FACA: 13,
+      ACABOU: 13
+    },
+    EXPRESSAO_LOGICA: {
+      PONTOVIRGULA: 15,
+      OPA: 15,
+      E_OU: 16,
+      FP: 15,
+      FACA: 15,
+      ACABOU: 15
+    },
     VALOR: { PONTOVIRGULA: 20, OPA: 20, OPB: 20, AP: 20 },
     SINAL: { VALOR: 21, OPA: 22 },
     N: { VIRGULA: 24, PONTOVIRGULA: 25, OPA: 25, E_OU: 25, AP: 25 },
@@ -41,11 +68,8 @@ export class Parser {
       FP: 28,
       IGUAL: 28
     }
-    // E_OU: {E_OU:31},
-    // OPA: { OPA: 33},
   };
 
-  // 1 = S -> [PROGRAMA]
   // 2 = PROGRAMA ->[COMANDO][PROGRAMA’]
   // 3 = PROGRAMA' -> [PROGRAMA]
   // 4 = PROGRAMA' -> ε
@@ -86,6 +110,12 @@ export class Parser {
   // 40 = X' -> SENÃO [PROGRAMA] ACABOU
   // 41 = X' -> ACABOU
   // 42 = E -> ENQUANTO [EXPRESSÃO_LÓGICA] FACA [PROGRAMA] ACABOU
+  // 43 = COMANDO -> [STMT];
+  // 44 = COMANDO -> [X]
+  // 45 = COMANDO -> [TE]
+  // 46 = PROGRAMAX' -> ε
+  // 47 = ARITMÉTICA_LÓGICA -> ε
+  // 48 = EXPRESSÃO_ARITIMÉTICA' -> ε
 
   constructor(private lexer: Lexer) {
     this.pilha.push(new Token(TokenType.$), new Token(TokenType.PROGRAMA));
@@ -95,23 +125,27 @@ export class Parser {
 
   parse() {
     let token = this.lexer.nextToken();
-    if (!token) {
-      //acabou
-    }
-    while (this.pilha.length && this.i < 7) {
+    while (this.pilha.length) {
       const topo = this.pilha[this.pilha.length - 1];
-      this.i++;
-      if (token!.type === topo.type) {
+      if (token?.type === topo.type) {
         console.log("Bateu pivt!", token);
         token = this.lexer.nextToken();
+        console.log("o token q chegou, ", token);
         this.pilha.pop();
+        console.log("pilha atual", this.pilha);
       } else {
         console.log("Regra: ", topo, token);
         const linha = this.LL[topo.type];
         if (linha) {
-          const producao = linha[token!.type];
+          const producao = token ? linha[token.type] : 4;
           this.pilha.pop();
+          console.log(producao);
           switch (producao) {
+            // casos nulos
+            case 13:
+            case 15:
+            case 4:
+              break;
             case 2: {
               this.pilha.push(new Token(TokenType.PROGRAMAX));
               this.pilha.push(new Token(TokenType.COMANDO));
@@ -130,7 +164,6 @@ export class Parser {
               break;
             }
             case 7: {
-              this.pilha.push(new Token(TokenType.PONTOVIRGULA));
               this.pilha.push(new Token(TokenType.EXPRESSAO));
               this.pilha.push(new Token(TokenType.IGUAL));
               this.pilha.push(new Token(TokenType.IDENTIFICADOR));
@@ -179,6 +212,7 @@ export class Parser {
               );
               break;
             }
+
             case 16: {
               this.pilha.push(
                 new Token(TokenType.EXPRESSAO_LOGICA),
@@ -189,7 +223,6 @@ export class Parser {
             }
             case 38: {
               this.pilha.push(
-                new Token(TokenType.PONTOVIRGULA),
                 new Token(TokenType.IDENTIFICADOR),
                 new Token(TokenType.TIPO)
               );
@@ -222,18 +255,32 @@ export class Parser {
                 new Token(TokenType.ACABOU),
                 new Token(TokenType.PROGRAMA),
                 new Token(TokenType.FACA),
-                new Token(TokenType.EXPRESSAO_LOGICA),
+                new Token(TokenType.EXPRESSAO),
                 new Token(TokenType.ENQUANTO)
               );
               break;
             }
+            case 43: {
+              this.pilha.push(new Token(TokenType.PONTOVIRGULA));
+              this.pilha.push(new Token(TokenType.STMT));
+              break;
+            }
+            case 44: {
+              this.pilha.push(new Token(TokenType.X));
+              break;
+            }
+            case 45: {
+              this.pilha.push(new Token(TokenType.E));
+              break;
+            }
+
             default:
-              throw Error("Produção invalida.");
+              if (token === null) {
+                console.log("Fim do parseamento!");
+              } else throw Error("Produção invalida.");
           }
         }
       }
     }
-
-    console.log("Fechou");
   }
 }
