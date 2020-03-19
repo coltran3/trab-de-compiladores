@@ -15,8 +15,7 @@ export class Parser {
       ACABOU: 4,
       ENQUANTO: 3,
       TIPO: 3,
-      PONTOVIRGULA: 4,
-      $: 4
+      PONTOVIRGULA: 4
     },
     COMANDO: {
       IDENTIFICADOR: 43,
@@ -85,26 +84,6 @@ export class Parser {
   // 14 = EXPRESSÃO_ARITIMÉTICA' -> [OPA] [EXPRESSÃO][EXPRESSÃO_ARITIMÉTICA']
   // 15 = EXPRESSÃO_LÓGICA' -> ε
   // 16 = EXPRESSÃO_LÓGICA' -> [E_OU] [EXPRESSÃO][EXPRESSÃO_LÓGICA']
-  // 17 = TIPO -> INTEIRO
-  // 18 = TIPO -> QUEBRADO
-  // 19 = TIPO -> LOGICO
-  // 20 = VALOR -> [SINAL] [NUMERO] [N] [CASA_DECIMAL]
-  // 21 = SINAL -> ε
-  // 22 = SINAL -> +
-  // 23 = SINAL -> -
-  // 24 = N -> [NUMERO]
-  // 25 = N -> ε
-  // 26 = CASA_DECIMAL -> ε
-  // 27 = CASA_DECIMAL -> ,[NUMERO][N]
-  // 28 = LETRA_OU_NUMERO -> ε
-  // 29 = LETRA_OU_NUMERO -> [LETRA][LETRA_OU_NUMERO]
-  // 30 = LETRA_OU_NUMERO -> [NUMERO][LETRA_OU_NUMERO]
-  // 31 = E_OU -> &&
-  // 32 = E_OU -> ||
-  // 33 = OPA -> +
-  // 34 = OPA -> -
-  // 35 = OPA -> /
-  // 36 = OPA -> *
   // 38 = T -> [TIPO][IDENTIFICADOR];
   // 39 = X -> SE [EXPRESSÃO_LÓGICA] FACA [PROGRAMA] [X’]
   // 40 = X' -> SENÃO [PROGRAMA] ACABOU
@@ -113,9 +92,6 @@ export class Parser {
   // 43 = COMANDO -> [STMT];
   // 44 = COMANDO -> [X]
   // 45 = COMANDO -> [TE]
-  // 46 = PROGRAMAX' -> ε
-  // 47 = ARITMÉTICA_LÓGICA -> ε
-  // 48 = EXPRESSÃO_ARITIMÉTICA' -> ε
 
   constructor(private lexer: Lexer) {
     this.pilha.push(new Token(TokenType.$), new Token(TokenType.PROGRAMA));
@@ -127,19 +103,22 @@ export class Parser {
     let token = this.lexer.nextToken();
     while (this.pilha.length) {
       const topo = this.pilha[this.pilha.length - 1];
+      //compara o topo da pilha com o token que chegou
+      //caso sejam iguais eu vou para o proximo token, e dou pop na pilha.
       if (token?.type === topo.type) {
-        console.log("Bateu pivt!", token);
+        console.log("Símbolos correspondentes", token);
         token = this.lexer.nextToken();
-        console.log("o token q chegou, ", token);
         this.pilha.pop();
-        console.log("pilha atual", this.pilha);
+        console.log("Pilha", this.pilha);
+        //caso não sejam iguais, dou pop na pilha, verifico qual a regra com a ajuda da parser table e vou dando pusho nos tokens q estao
+        //naquela produção
       } else {
-        console.log("Regra: ", topo, token);
-        const linha = this.LL[topo.type];
+        const linha = this.LL[topo!.type];
+        //verificação se eu possuo uma linha na minha parser table com o tipo do token q esta no topo da pilha.
         if (linha) {
           const producao = token ? linha[token.type] : 4;
           this.pilha.pop();
-          console.log(producao);
+
           switch (producao) {
             // casos nulos
             case 13:
@@ -275,10 +254,22 @@ export class Parser {
             }
 
             default:
-              if (token === null) {
-                console.log("Fim do parseamento!");
-              } else throw Error("Produção invalida.");
+              //caso eu não encontre o source é invalido.
+              throw Error("Source invalido!");
           }
+          //else da verifação do if(linha) lá em cima, se não houver linha na minha parser table, pode ser q meu token no topo seja $
+          //então verifico se ele é realmente $, também verifico se o meu token q chegou é do tipo null, pois nesse caso a string acaba
+          //e meu programa foi parseado com sucesso.
+        } else if (topo.type === TokenType.$ && token === null) {
+          console.log("pilha", this.pilha);
+          console.log("token", token);
+          console.log("Acabou!");
+          return;
+          //caso contrario a string que recebi é invalida
+        } else {
+          console.log("pilha", this.pilha);
+          console.log("token", token);
+          throw Error("Source invalido!");
         }
       }
     }
